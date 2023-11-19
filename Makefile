@@ -7,7 +7,7 @@ MAIN_FILES := $(wildcard $(MAIN_DIR)/*.cc)
 ALGO_FILES := $(wildcard $(ALGO_DIR)/*.cc)
 
 pregel: $(MAIN_FILES) $(ALGO_FILES)
-	# $(CC) $(FLAGS) $(MAIN_FILES) $(ALGO_FILES) -o pregel
+    $(CC) $(FLAGS) $(MAIN_FILES) $(ALGO_FILES) -o pregel
 
 clean:
 	rm -f pregel
