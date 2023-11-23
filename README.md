@@ -6,4 +6,7 @@ Pregel-esque parallel graph algorithms
 Implemented Algorithms:
 - [ ] pagerank
 
-To use, extend the virtual class in `pregel.hh`. To run examples in this project, build with make and run the binary with the algorithm name in question. 
+To use, extend the virtual class in `pregel.hh`. To run examples in this project, build with make and run the binary with the algorithm name in question.
+```
+./pregel pagerank
+```
