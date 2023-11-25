@@ -1,22 +1,16 @@
-#include <cstdio>
-#include <cstring>
-#include <stdexcept>
+#include <string>
+
+#include "vertex.hh"
+#include "algos/test.hh"
 
 int main(int argc, char *argv[]) {
-    // if (argc == 1) {
-    //     throw std::invalid_argument("Need to specify algorithm.");
-    // }
+    std::string name = "name";
 
-    // // implemented example algorithms
-    // if (strcmp(argv[1], "pagerank") == 0) {
+    Test * hi = new Test(name, 5, std::vector<int*>());
 
-    // } else {
-    //     throw std::invalid_argument("Inputted algorithm not available.");
-    // }
+    delete hi;
 
-    // printf("Pagerank\n");
-
-    // add testing measures for now
+    //Vertex<int, int, int> * v = new Vertex<int, int, int>(name, 5, std::vector<int*>());
 
     return 0;
 }
