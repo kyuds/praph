@@ -1,7 +1,6 @@
 #ifndef PREGEL_ENGINE
 #define PREGEL_ENGINE
 
-#include <chrono>
 #include <condition_variable>
 #include <semaphore>
 #include <stdexcept>
@@ -10,11 +9,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include <iostream>
-
 template <typename V>
 void pregel_worker(
-    std::vector<V*>& nodes, 
+    std::vector<V*> nodes, 
     std::condition_variable& cv_v, 
     std::mutex& cv_m,
     std::pair<std::binary_semaphore*, bool>* s,
@@ -22,7 +19,18 @@ void pregel_worker(
 ) {
     std::unique_lock<std::mutex> lk(cv_m);
 
-    cv_v.wait(lk);
+    while (!join_now) {
+        cv_v.wait(lk);
+        if (join_now) break;
+
+        s->second = false;
+        // organize messages
+        for (auto v : nodes) {
+            v->Compute(std::vector<int*>());
+            s->second |= v->is_active();
+        }
+        s->first->release();
+    }
 }
 
 template <typename V>
@@ -76,16 +84,21 @@ PregelEngine<V>::PregelEngine(std::vector<V*> v_verticies, int num_workers) {
         auto s = new std::binary_semaphore(0);
         auto p = new std::pair<std::binary_semaphore *, bool>(s, true);
         statuses.push_back(p);
-        workers.push_back(std::thread(pregel_worker<V>, std::ref(pt), std::ref(cv_v), std::ref(cv_m), p, std::ref(join_now)));
+        workers.push_back(std::thread(pregel_worker<V>, pt, std::ref(cv_v), std::ref(cv_m), p, std::ref(join_now)));
     }
 }
 
 template <typename V>
 PregelEngine<V>::~PregelEngine() {
+    for (int i = 0; i < workers.size(); i++) {
+        workers.at(i).join();
+    }
+
     for (auto p : statuses) {
         delete p->first;
         delete p;
     }
+
     for (auto v : verticies) {
         delete v;
     }
@@ -93,9 +106,20 @@ PregelEngine<V>::~PregelEngine() {
 
 template <typename V>
 void PregelEngine<V>::run() {
-    for (int i = 0; i < workers.size(); i++) {
-        workers.at(i).join();
-    }
+    bool cont;
+    do {
+        cont = false;
+        { std::lock_guard<std::mutex> lk(cv_m); }
+        cv_v.notify_all();
+        for (auto p : statuses) {
+            p->first->acquire();
+            cont |= p->second;
+        }
+    } while(cont);
+
+    join_now = true;
+    { std::lock_guard<std::mutex> lk(cv_m); }
+    cv_v.notify_all();
 }
 
 template <typename V>

@@ -14,6 +14,7 @@ class Vertex {
 
         const std::string& vertex_id() const;
         unsigned int get_superstep() const;
+        void increment_superstep();
 
         const VV& get_value() const;
         VV* mutable_value();
@@ -21,6 +22,8 @@ class Vertex {
 
         void send_msg(const std::string& id, MV* msg);
         void vote_halt();
+        bool is_active();
+        void set_active();
     private:
         std::string id;
         unsigned int superstep;
@@ -60,6 +63,11 @@ unsigned int Vertex<VV, EV, MV>::get_superstep() const {
 }
 
 template <typename VV, typename EV, typename MV>
+void Vertex<VV, EV, MV>::increment_superstep() {
+    superstep++;
+}
+
+template <typename VV, typename EV, typename MV>
 const VV& Vertex<VV, EV, MV>::get_value() const {
     return value;
 }
@@ -81,7 +89,17 @@ void Vertex<VV, EV, MV>::send_msg(const std::string& id, MV* msg) {
 
 template <typename VV, typename EV, typename MV>
 void Vertex<VV, EV, MV>::vote_halt() {
+    active = false;
+}
 
+template <typename VV, typename EV, typename MV>
+bool Vertex<VV, EV, MV>::is_active() {
+    return active;
+}
+
+template <typename VV, typename EV, typename MV>
+void Vertex<VV, EV, MV>::set_active() {
+    active = true;
 }
 
 // edge template class

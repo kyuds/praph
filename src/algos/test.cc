@@ -13,14 +13,16 @@ Test::~Test() {
 }
 
 void Test::Compute(std::vector<int*> msgs) {
-    std::cout << vertex_id() << " says hi on " << get_superstep() << std::endl;
+    std::string msg = vertex_id() + std::string(" says hi on ") + std::to_string(get_superstep()) + std::string("\n");
+    std::cout << msg;
 
     if (get_superstep() == 5) {
         vote_halt();
     }
+    increment_superstep();
 }
 
-std::vector<Test*> generate_five_test_nodes() {
+std::vector<Test*> generate_seven_test_nodes() {
     std::vector<Test*> a;
     std::string t1_id = "t1";
     Test * t1 = new Test(t1_id, 1, std::vector<Edge<Test*, int>*>());

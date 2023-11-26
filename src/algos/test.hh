@@ -10,6 +10,6 @@ class Test : public Vertex<int, Edge<Test*, int>, int> {
         void Compute(std::vector<int*> msgs) override;
 };
 
-std::vector<Test*> generate_five_test_nodes();
+std::vector<Test*> generate_seven_test_nodes();
 
 #endif
