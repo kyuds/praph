@@ -1,5 +1,6 @@
 CC := g++
-FLAGS := -std=c++17
+# for MacOS semaphores: -D_LIBCPP_DISABLE_AVAILABILITY
+FLAGS := -std=c++20 -D_LIBCPP_DISABLE_AVAILABILITY
 MAIN_DIR := src
 ALGO_DIR := src/algos
 

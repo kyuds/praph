@@ -1,16 +1,13 @@
-#include <string>
-
-#include "vertex.hh"
+#include "engine.hh"
+#include "pregel.hh"
 #include "algos/test.hh"
 
+#include <iostream>
+
 int main(int argc, char *argv[]) {
-    std::string name = "name";
+    PregelEngine<Test> * e = new PregelEngine<Test>(generate_five_test_nodes(), 5);
+    e->run();
 
-    Test * hi = new Test(name, 5, std::vector<int*>());
-
-    delete hi;
-
-    //Vertex<int, int, int> * v = new Vertex<int, int, int>(name, 5, std::vector<int*>());
-
+    std::cout << "done joining" << std::endl;
     return 0;
 }
