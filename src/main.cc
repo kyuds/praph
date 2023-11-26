@@ -1,6 +1,6 @@
 #include "engine.hh"
 #include "pregel.hh"
-#include "algos/test.hh"
+#include "algo/test.hh"
 
 #include <iostream>
 #include <chrono>
