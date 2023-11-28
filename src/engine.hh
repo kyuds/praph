@@ -134,6 +134,7 @@ void PregelEngine<V>::distribute_messages() {
             vertex_map[m.first]->add_to_incoming(m.second);
         }
         v->clear_outgoing_msg();
+        v->increment_superstep();
     }
 }
 

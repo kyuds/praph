@@ -50,7 +50,7 @@ Vertex<VV, EV, MV>::Vertex(std::string v_id, VV v_value, std::vector<EV*> v_edge
     value = v_value;
     edges = v_edges;
 
-    superstep = 0;
+    superstep = 1;
     active = true;
 }
 

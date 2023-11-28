@@ -1,12 +1,12 @@
 #include "engine.hh"
 #include "pregel.hh"
-#include "algo/test.hh"
+#include "algo/pagerank.hh"
 
 #include <iostream>
 #include <chrono>
 
 int main(int argc, char *argv[]) {
-    PregelEngine<Test> * e = new PregelEngine<Test>(generate_seven_test_nodes(), 5);
+    PregelEngine<PageRankVertex> * e = new PregelEngine<PageRankVertex>(generate_graph(), 5);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
