@@ -24,13 +24,9 @@ void pregel_worker(
         if (join_now) break;
 
         s->second = false;
-        // remove messages vector
-        // reorganize from distribute_message()
-        // have storage for incoming and outgoing vectors in each vertex.
-        // reorganize Vertex class edges. 
         for (auto v : nodes) {
-            if (v->is_active()) {
-                v->Compute(std::vector<int*>());
+            if (v->is_active() || v->get_incoming_msg().size() > 0) {
+                v->Compute();
             }
             s->second |= v->is_active();
         }
@@ -130,7 +126,15 @@ void PregelEngine<V>::run() {
 
 template <typename V>
 void PregelEngine<V>::distribute_messages() {
-
+    for (auto v : verticies) {
+        v->clear_incoming_msg();
+    }
+    for (auto v : verticies) {
+        for (auto m : v->get_outgoing_msg()) {
+            vertex_map[m.first]->add_to_incoming(m.second);
+        }
+        v->clear_outgoing_msg();
+    }
 }
 
 #endif

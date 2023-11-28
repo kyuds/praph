@@ -12,9 +12,14 @@ Test::~Test() {
     std::cout << "IMPL DESTRUCTOR!" << std::endl;
 }
 
-void Test::Compute(std::vector<int*> msgs) {
+void Test::Compute() {
     std::string msg = vertex_id() + std::string(" says hi on ") + std::to_string(get_superstep()) + std::string("\n");
     std::cout << msg;
+
+    send_msg(std::string("t1"), 4);
+    for (auto m : get_incoming_msg()) {
+        std::cout << std::to_string(m) + vertex_id();
+    }
 
     if (get_superstep() == 5) {
         vote_halt();
