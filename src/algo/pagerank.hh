@@ -1,17 +1,20 @@
 #ifndef PREGEL_PAGERANK
 #define PREGEL_PAGERANK
 
-// #include "../pregel.hh"
+#include "../pregel.hh"
 
-// #include <vector>
+#include <vector>
 
-// class PageRankVertex : public Vertex<int, Edge<PageRankVertex*, int>, int> {
-//     public:
-//         PageRankVertex(std::string v_id, int v_value, std::vector<Edge<PageRankVertex*, int>*> v_edges);
-//         ~PageRankVertex();
-//         void Compute(std::vector<int*> msgs) override;
-// };
+class PageRankVertex : public Vertex<double, Edge<PageRankVertex, int>, double> {
+    public:
+        PageRankVertex(std::string v_id, double v_value, std::vector<Edge<PageRankVertex, int>*> v_edges, int p_num_vertex);
+        ~PageRankVertex();
+        void addOutEdge(PageRankVertex * p);
+        void Compute() override;
+    private:
+        int num_vertex;
+};
 
-// std::vector<PageRankVertex*> generate_data();
+// std::vector<PageRankVertex*> generate_graph();
 
 #endif
