@@ -3,6 +3,7 @@
 
 #include "../pregel.hh"
 
+// test node
 class Test : public Vertex<int, Edge<Test*, int>, int> {
     public:
         Test(std::string v_id, int v_value, std::vector<Edge<Test*, int>*> v_edges);
