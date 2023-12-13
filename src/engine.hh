@@ -17,10 +17,13 @@ void pregel_worker(
     std::pair<std::binary_semaphore*, bool>* s,
     bool& join_now
 ) {
-    std::unique_lock<std::mutex> lk(cv_m);
+    std::unique_lock<std::mutex> lk(cv_m, std::defer_lock);
 
     while (!join_now) {
+        lk.lock();
         cv_v.wait(lk);
+        lk.unlock();
+        cv_v.notify_all();
         if (join_now) break;
 
         s->second = false;

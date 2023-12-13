@@ -1,6 +1,8 @@
 #include "test.hh"
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 Test::Test(std::string v_id, int v_value, std::vector<Edge<Test*, int>*> v_edges) 
     : Vertex<int, Edge<Test*, int>, int>(v_id, v_value, v_edges)
@@ -15,6 +17,7 @@ Test::~Test() {
 void Test::Compute() {
     std::string msg = vertex_id() + std::string(" says hi on ") + std::to_string(get_superstep()) + std::string("\n");
     std::cout << msg;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     send_msg(std::string("t1"), 4);
     for (auto m : get_incoming_msg()) {
