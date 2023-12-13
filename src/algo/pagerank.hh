@@ -15,6 +15,6 @@ class PageRankVertex : public Vertex<double, Edge<PageRankVertex, int>, double> 
         int num_vertex;
 };
 
-std::vector<PageRankVertex*> generate_graph();
+// std::vector<PageRankVertex*> generate_graph();
 
 #endif

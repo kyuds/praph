@@ -32,6 +32,6 @@ void PageRankVertex::addOutEdge(PageRankVertex * p) {
     get_edges().push_back(new Edge<PageRankVertex, int>(p, 0));
 }
 
-std::vector<PageRankVertex*> generate_graph() {
+// std::vector<PageRankVertex*> generate_graph() {
 
-}
+// }
