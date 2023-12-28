@@ -17,17 +17,15 @@ Test::~Test() {
 void Test::Compute() {
     std::string msg = vertex_id() + std::string(" says hi on ") + std::to_string(get_superstep()) + std::string("\n");
     std::cout << msg;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    send_msg(std::string("t1"), 4);
-    for (auto m : get_incoming_msg()) {
-        std::cout << std::to_string(m) + vertex_id();
-    }
+    // send_msg(std::string("t1"), 4);
+    // for (auto m : get_incoming_msg()) {
+    //     std::cout << std::to_string(m) + vertex_id();
+    // }
 
     if (get_superstep() == 5) {
         vote_halt();
     }
-    increment_superstep();
 }
 
 std::vector<Test*> generate_seven_test_nodes() {

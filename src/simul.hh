@@ -1,46 +1,57 @@
-#ifndef PREGEL_ENGINE
-#define PREGEL_ENGINE
+#ifndef PREGEL_SIMULATOR
+#define PREGEL_SIMULATOR
 
-#include <condition_variable>
 #include <semaphore>
-#include <stdexcept>
-#include <thread>
 #include <vector>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 
 template <typename V>
-void pregel_worker(
-    std::vector<V*> nodes, 
-    std::condition_variable& cv_v, 
-    std::mutex& cv_m,
-    std::pair<std::binary_semaphore*, bool>* s,
-    bool& join_now
-) {
-    std::unique_lock<std::mutex> lk(cv_m, std::defer_lock);
+class PregelWorker {
+    public:
+        PregelWorker(std::vector<V*> _nodes) { nodes = _nodes; }
+        ~PregelWorker() {}
 
-    while (!join_now) {
-        lk.lock();
-        cv_v.wait(lk);
-        lk.unlock();
-        cv_v.notify_all();
-        if (join_now) break;
+        bool halted() { return stopped; }
+        void setHalt(bool b) { stopped = b; }
+        std::vector<V*>& getNodes() { return nodes; }
 
-        s->second = false;
-        for (auto v : nodes) {
+        std::counting_semaphore<1>& waker() { return wakeWorker; }
+        std::counting_semaphore<1>& signal() { return signalDone; }
+    
+    private:
+        bool stopped;
+        std::vector<V*> nodes;
+
+        std::counting_semaphore<1> wakeWorker {0};
+        std::counting_semaphore<1> signalDone {0};
+};
+
+template <typename V>
+void thread_func(PregelWorker<V> * worker, bool& joinNow) {
+    while (!joinNow) {
+        worker->waker().acquire();
+        if (joinNow) break;
+
+        // do work on all nodes.
+        bool halt = false;
+        for (auto v : worker->getNodes()) {
             if (v->is_active() || v->get_incoming_msg().size() > 0) {
                 v->Compute();
             }
-            s->second |= v->is_active();
+            halt |= v->is_active();
         }
-        s->first->release();
+        worker->setHalt(halt);
+
+        worker->signal().release();
     }
 }
 
 template <typename V>
 class PregelEngine {
     public:
-        PregelEngine(std::vector<V*> v_verticies, int num_workers);
+        PregelEngine(std::vector<V*> _verticies, int num_workers);
         ~PregelEngine();
         void run();
     private:
@@ -50,20 +61,15 @@ class PregelEngine {
         std::unordered_map<std::string, V*> vertex_map;
         
         bool join_now;
-        std::condition_variable cv_v;
-        std::mutex cv_m;
 
-        std::vector<std::thread> workers;
-        std::vector<std::pair<std::binary_semaphore*, bool>*> statuses;
+        std::vector<std::thread> threads;
+        std::vector<PregelWorker<V>*> workers;
 };
 
 template <typename V>
-PregelEngine<V>::PregelEngine(std::vector<V*> v_verticies, int num_workers) {
-    verticies = v_verticies;
+PregelEngine<V>::PregelEngine(std::vector<V*> _verticies, int num_workers) {
+    verticies = _verticies;
     join_now = false;
-    if (num_workers <= 0) {
-        throw std::invalid_argument("Number of workers should be positive");
-    }
 
     // create partitions setup
     std::vector<std::vector<V*> > partitions;
@@ -85,26 +91,22 @@ PregelEngine<V>::PregelEngine(std::vector<V*> v_verticies, int num_workers) {
     // start threads (add to vector), initialize semaphore pair
     for (auto pt : partitions) {
         if (pt.size() == 0) continue;
-        auto s = new std::binary_semaphore(0);
-        auto p = new std::pair<std::binary_semaphore *, bool>(s, true);
-        statuses.push_back(p);
-        workers.push_back(std::thread(pregel_worker<V>, pt, std::ref(cv_v), std::ref(cv_m), p, std::ref(join_now)));
+        PregelWorker<V> * w = new PregelWorker<V>(pt);
+        threads.push_back(std::thread(thread_func<V>, w, std::ref(join_now)));
+        workers.push_back(w);
     }
 }
 
 template <typename V>
 PregelEngine<V>::~PregelEngine() {
-    for (int i = 0; i < workers.size(); i++) {
-        workers.at(i).join();
+    for (int i = 0; i < threads.size(); i++) {
+        threads.at(i).join();
     }
-
-    for (auto p : statuses) {
-        delete p->first;
-        delete p;
-    }
-
     for (auto v : verticies) {
         delete v;
+    }
+    for (auto w : workers) {
+        delete w; 
     }
 }
 
@@ -113,18 +115,23 @@ void PregelEngine<V>::run() {
     bool cont;
     do {
         cont = false;
-        { std::lock_guard<std::mutex> lk(cv_m); }
-        cv_v.notify_all();
-        for (auto p : statuses) {
-            p->first->acquire();
-            cont |= p->second;
+        for (auto w : workers) {
+            w->waker().release();
         }
+        for (auto w : workers) {
+            w->signal().acquire();
+            cont |= w->halted();
+        }
+
         distribute_messages();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     } while(cont);
 
     join_now = true;
-    { std::lock_guard<std::mutex> lk(cv_m); }
-    cv_v.notify_all();
+    for (auto w : workers) {
+        w->waker().release();
+    }
 }
 
 template <typename V>
